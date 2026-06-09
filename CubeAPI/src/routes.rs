@@ -18,7 +18,7 @@ use tower_http::{
 };
 
 use crate::{
-    handlers::{agenthub, cluster, config, health, sandboxes, snapshots, store, templates},
+    handlers::{agenthub, cluster, config, examples, health, sandboxes, snapshots, store, templates},
     middleware::{auth::unified_auth, rate_limit::rate_limit},
     state::AppState,
 };
@@ -87,6 +87,7 @@ fn build_cubeapi_router(state: &AppState, auth_configured: bool) -> Router<AppSt
         .merge(build_template_routes(state, auth_configured))
         .merge(build_cluster_routes(state, auth_configured))
         .merge(build_agenthub_routes(state, auth_configured))
+        .merge(build_examples_routes(state, auth_configured))
 }
 
 /// Same long-budget routes mounted under the `/cubeapi/v1` prefix.
@@ -336,6 +337,18 @@ fn apply_http_layers(router: Router<AppState>, timeout: Duration) -> Router<AppS
             .layer(CompressionLayer::new())
             .layer(CorsLayer::permissive()),
     )
+}
+
+fn build_examples_routes(state: &AppState, auth_configured: bool) -> Router<AppState> {
+    let routes = Router::new()
+        .route("/examples", get(examples::list_examples))
+        .route("/examples/:id", get(examples::get_example_source))
+        .route("/examples/run", post(examples::run_example));
+    if auth_configured {
+        routes.layer(middleware::from_fn_with_state(state.clone(), unified_auth))
+    } else {
+        routes
+    }
 }
 
 #[cfg(test)]

@@ -25,6 +25,7 @@ import NetworkPage from '@/pages/Network';
 import ObservabilityPage from '@/pages/Observability';
 import TemplateStorePage from '@/pages/TemplateStore';
 import AgentHubPage from '@/pages/AgentHub';
+import ExamplesPage from '@/pages/Examples';
 import { Placeholder } from '@/pages/Placeholder';
 import { Network, Activity, Settings, Package } from 'lucide-react';
 
@@ -59,9 +60,10 @@ const App = () => (
               <Route path="/versions" element={<VersionsPage />} />
               <Route path="/network" element={<NetworkPage />} />
               <Route path="/observability" element={<ObservabilityPage />} />
-              <Route path="/store" element={<TemplateStorePage />} />
-              <Route path="/agenthub" element={<AgentHubPage />} />
-              <Route path="/keys" element={<KeysPage />} />
+            <Route path="/store" element={<TemplateStorePage />} />
+            <Route path="/agenthub" element={<AgentHubPage />} />
+            <Route path="/examples" element={<ExamplesPage />} />
+            <Route path="/keys" element={<KeysPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
