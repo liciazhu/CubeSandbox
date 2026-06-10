@@ -25,7 +25,7 @@ import NetworkPage from '@/pages/Network';
 import ObservabilityPage from '@/pages/Observability';
 import TemplateStorePage from '@/pages/TemplateStore';
 import AgentHubPage from '@/pages/AgentHub';
-import ExamplesPage from '@/pages/Examples';
+import ExamplesPage from '@/pages/SandboxCases';
 import { Placeholder } from '@/pages/Placeholder';
 import { Network, Activity, Settings, Package } from 'lucide-react';
 
