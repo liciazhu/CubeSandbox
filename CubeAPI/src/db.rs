@@ -1155,6 +1155,23 @@ WHERE agent_id = ? AND deleted_at IS NULL
                 true,
                 3,
             ),
+            (
+                "sandbox-nginx",
+                "items.sandbox-nginx.name",
+                "items.sandbox-nginx.description",
+                "cube-sandbox-cn.tencentcloudcr.com/cube-sandbox/sandbox-nginx:latest",
+                "cube-sandbox-int.tencentcloudcr.com/cube-sandbox/sandbox-nginx:latest",
+                None,
+                &["nginx", "web", "official"],
+                "web",
+                120,
+                &[49983, 80],
+                49983,
+                "/health",
+                "1G",
+                true,
+                4,
+            ),
         ];
 
         for s in &seeds {
