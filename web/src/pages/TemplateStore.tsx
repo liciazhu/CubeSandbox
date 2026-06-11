@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { templateApi, storeApi, type TemplateSummary, type ImageMeta } from '@/api/client';
+import { templateApi, storeApi, type TemplateSummary, type ImageMeta, type StoreCatalogItem } from '@/api/client';
 import { showToast } from '@/components/ui/ToastProvider';
-import { STORE_TEMPLATES, CATEGORIES, type StoreTemplate, type CategoryId } from '@/data/templateStore';
+import { CATEGORIES, type CategoryId } from '@/data/templateStore';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-function categoryIcon(category: StoreTemplate['category']) {
+function categoryIcon(category: StoreCatalogItem['category']) {
   switch (category) {
     case 'code':    return Code2;
     case 'browser': return Globe;
@@ -29,7 +29,7 @@ function categoryIcon(category: StoreTemplate['category']) {
 }
 
 /** 只计 status=READY 的模板为"已安装" */
-function getInstalledTemplates(item: StoreTemplate, templates: TemplateSummary[]): TemplateSummary[] {
+function getInstalledTemplates(item: StoreCatalogItem, templates: TemplateSummary[]): TemplateSummary[] {
   return templates.filter((tpl) => {
     if (!tpl.imageInfo) return false;
     const statusOk = tpl.status?.toUpperCase() === 'READY';
@@ -50,7 +50,7 @@ type InstallPhase =
   | { kind: 'failed';  message: string };
 
 interface InstallModalProps {
-  item: StoreTemplate;
+  item: StoreCatalogItem;
   onClose: () => void;
 }
 
@@ -342,7 +342,7 @@ function InstalledDropdown({ installed, onInstallAnother }: InstalledDropdownPro
 // ── StoreCard ─────────────────────────────────────────────────────────────────
 
 interface StoreCardProps {
-  item: StoreTemplate;
+  item: StoreCatalogItem;
   installed: TemplateSummary[];
   onInstall: () => void;
   liveMeta?: ImageMeta;
@@ -389,7 +389,7 @@ function StoreCard({ item, installed, onInstall, liveMeta }: StoreCardProps) {
 
         {/* description */}
         <p className="text-xs text-muted-foreground leading-relaxed">
-          {t(item.descriptionKey as 'official', { defaultValue: '' })}
+          {t(item.description_key as 'official', { defaultValue: '' })}
         </p>
 
         {/* tags */}
@@ -424,7 +424,7 @@ function StoreCard({ item, installed, onInstall, liveMeta }: StoreCardProps) {
 export default function TemplateStorePage() {
   const [category, setCategory] = useState<CategoryId>('all');
   const [search, setSearch] = useState('');
-  const [installing, setInstalling] = useState<StoreTemplate | null>(null);
+  const [installing, setInstalling] = useState<StoreCatalogItem | null>(null);
   const { t } = useTranslation('store');
   const qc = useQueryClient();
 
@@ -432,6 +432,12 @@ export default function TemplateStorePage() {
     queryKey: ['templates'],
     queryFn: templateApi.list,
     refetchInterval: 30_000,
+  });
+
+  const { data: storeCatalog } = useQuery({
+    queryKey: ['store-catalog'],
+    queryFn: storeApi.catalog,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const { data: storeMeta, refetch: refetchMeta } = useQuery({
@@ -470,12 +476,12 @@ export default function TemplateStorePage() {
     },
   });
 
-  const filtered = STORE_TEMPLATES.filter((item) => {
+  const filtered = (storeCatalog ?? []).filter((item) => {
     if (category !== 'all' && item.category !== category) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
-      const name = t(item.nameKey as 'official', { defaultValue: '' }).toLowerCase();
-      const description = t(item.descriptionKey as 'official', { defaultValue: '' }).toLowerCase();
+      const name = t(item.name_key as 'official', { defaultValue: '' }).toLowerCase();
+      const description = t(item.description_key as 'official', { defaultValue: '' }).toLowerCase();
       return (
         name.includes(q) ||
         description.includes(q) ||
