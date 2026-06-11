@@ -5,10 +5,11 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { templateApi, storeApi, type TemplateSummary, type ImageMeta, type StoreCatalogItem } from '@/api/client';
 import { showToast } from '@/components/ui/ToastProvider';
 import { CATEGORIES, type CategoryId } from '@/data/templateStore';
+import { getInstalledTemplates } from '@/lib/template-match';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,18 +28,6 @@ function categoryIcon(category: StoreCatalogItem['category']) {
     case 'web':     return Server;
     case 'base':    return Box;
   }
-}
-
-/** 只计 status=READY 的模板为"已安装" */
-function getInstalledTemplates(item: StoreCatalogItem, templates: TemplateSummary[]): TemplateSummary[] {
-  return templates.filter((tpl) => {
-    if (!tpl.imageInfo) return false;
-    const statusOk = tpl.status?.toUpperCase() === 'READY';
-    if (!statusOk) return false;
-    if (item.digest && tpl.imageInfo.includes(item.digest)) return true;
-    const imageName = item.image.split('@')[0];
-    return tpl.imageInfo.includes(imageName);
-  });
 }
 
 // ── InstallModal ──────────────────────────────────────────────────────────────
@@ -428,6 +417,12 @@ export default function TemplateStorePage() {
   const [installing, setInstalling] = useState<StoreCatalogItem | null>(null);
   const { t } = useTranslation('store');
   const qc = useQueryClient();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q) setSearch(q);
+  }, [searchParams]);
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ['templates'],
@@ -486,6 +481,8 @@ export default function TemplateStorePage() {
       return (
         name.includes(q) ||
         description.includes(q) ||
+        item.image.toLowerCase().includes(q) ||
+        item.id.toLowerCase().includes(q) ||
         item.tags.some((tag) => {
           const label = t(`tagLabels.${tag}` as 'official', { defaultValue: tag }).toLowerCase();
           return tag.toLowerCase().includes(q) || label.includes(q);
