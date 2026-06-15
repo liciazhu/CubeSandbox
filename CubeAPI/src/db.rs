@@ -133,7 +133,6 @@ CREATE TABLE IF NOT EXISTS `t_store_template` (
         )
         .execute(&self.pool)
         .await?;
-        self.seed_store_templates().await?;
 
         // ensure dns column exists in t_store_template (added after initial schema)
         self.ensure_table_column(
@@ -142,6 +141,8 @@ CREATE TABLE IF NOT EXISTS `t_store_template` (
             "`dns` json DEFAULT NULL COMMENT 'DNS servers for sandbox (ordered by priority)'",
         )
         .await?;
+
+        self.seed_store_templates().await?;
 
         sqlx::query(
             r#"
@@ -1124,7 +1125,7 @@ WHERE agent_id = ? AND deleted_at IS NULL
                 &["browser", "chromium", "official"],
                 "browser",
                 1530,
-                &[49983, 9000],
+                &[49983, 9000, 6080],
                 9000,
                 "/cdp/json/version",
                 "1G",
